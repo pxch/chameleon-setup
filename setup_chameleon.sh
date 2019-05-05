@@ -57,7 +57,7 @@ configure_zsh() {
     printf "\nulimit -n 16384\n" >> ~/.zshrc
 
     print_msg "Switching to zsh as the default shell"
-    sudo chsh -s /usr/bin/zsh
+    sudo chsh -s /usr/bin/zsh `whoami`
 
     print_msg "Successfully installed `zsh --version`"
 }
