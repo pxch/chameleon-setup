@@ -1,15 +1,11 @@
 #!/bin/bash
 
-force_yes=false
 install_cuda=false
 install_conda=false
 install_pytorch=false
 
 while :; do
     case $1 in
-        -y|--yes|--force-yes)
-            force_yes=true
-            ;;
         --cuda|--install-cuda)
             install_cuda=true
             ;;
@@ -32,13 +28,6 @@ print_msg() {
     printf "\n#### CHAMELEON #### $1\n"
 }
 
-prompt_msg() {
-    print_msg "$1"
-    if [ "$2" = false ]; then
-        read -p "Press enter to continue (or Ctrl-C to abort) >>> "
-    fi
-}
-
 safe_delete() {
     if [ -d $1 ]; then
         echo "$1 already exists, deleting it ..."
@@ -47,7 +36,7 @@ safe_delete() {
 }
 
 configure_zsh() {
-    prompt_msg "Configuring zsh" $force_yes
+    print_msg "Configuring zsh"
 
     print_msg "Installing zsh"
     sudo apt install -y zsh
@@ -68,13 +57,13 @@ configure_zsh() {
     printf "\nulimit -n 16384\n" >> ~/.zshrc
 
     print_msg "Switching to zsh as the default shell"
-    sudo chsh -s /usr/bin/zsh cc
+    sudo chsh -s /usr/bin/zsh
 
     print_msg "Successfully installed `zsh --version`"
 }
 
 configure_vim() {
-    prompt_msg "Configuring vim" $force_yes
+    print_msg "Configuring vim"
 
     print_msg "Installing latest vim from source"
     sudo apt install -y libncurses5-dev
@@ -94,7 +83,7 @@ configure_vim() {
 }
 
 configure_tmux() {
-    prompt_msg "Configuring tmux" $force_yes
+    print_msg "Configuring tmux"
 
     print_msg "Installing latest tmux from source"
     sudo apt install -y libevent-dev
@@ -117,7 +106,7 @@ configure_tmux() {
 }
 
 configure_tools() {
-    prompt_msg "Configuring other tools" $force_yes
+    print_msg "Configuring other tools"
 
     print_msg "Installing htop and ncdu"
     sudo apt install -y htop ncdu
@@ -129,7 +118,7 @@ configure_tools() {
 }
 
 configure_cuda() {
-    prompt_msg "Configuring CUDA" $force_yes
+    print_msg "Configuring CUDA"
 
     print_msg "Verifying NVIDIA devices"
     lspci | grep -i nvidia
@@ -157,7 +146,7 @@ configure_cuda() {
 }
 
 configure_conda() {
-    prompt_msg "Configuring conda" $force_yes
+    print_msg "Configuring conda"
 
     print_msg "Installing Miniconda3"
     wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
@@ -165,17 +154,17 @@ configure_conda() {
     sh ./Miniconda3-latest-Linux-x86_64.sh -b -p ~/miniconda3
 
     print_msg "Configuring conda channels"
-    source /home/cc/miniconda3/etc/profile.d/conda.sh
+    source ~/miniconda3/etc/profile.d/conda.sh
     conda config --set show_channel_urls true && conda config --set channel_priority true && conda config --append channels conda-forge
-    printf "\n# Conda command\nsource /home/cc/miniconda3/etc/profile.d/conda.sh\n" >> ~/.zshrc
+    printf "\n# Conda command\nsource ${HOME}/miniconda3/etc/profile.d/conda.sh\n" >> ~/.zshrc
     # source ~/.zshrc
     # conda clean -a
     rm Miniconda3-latest-Linux-x86_64.sh
 }
 
 configure_pytorch() {
-    prompt_msg "Configuring PyTorch" $force_yes
-    source /home/cc/miniconda3/etc/profile.d/conda.sh
+    print_msg "Configuring PyTorch"
+    source ~/miniconda3/etc/profile.d/conda.sh
 
     print_msg "Creating new conda environment"
     conda create -y -n pytorch python pip
