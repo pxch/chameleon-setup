@@ -2,6 +2,7 @@
 
 force_yes=false
 install_cuda=false
+install_pytorch=false
 
 while :; do
     case $1 in
@@ -10,6 +11,9 @@ while :; do
             ;;
         --cuda|--install-cuda)
             install_cuda=true
+            ;;
+        --pytorch|--install-pytorch)
+            install_pytorch=true
             ;;
         *)
             break
@@ -75,7 +79,6 @@ configure_vim() {
     cd ~/vim/src && make && sudo make install
     cd && rm -rf ~/vim
     printf "\n# Link vi alias to latest version of vim\nalias vi=/usr/local/bin/vim\n" >> ~/.zshrc
-    tail -n 10 ~/.zshrc
     # source ~/.zshrc
 
     print_msg "Installing the Ultimate vimrc configuration"
@@ -166,6 +169,28 @@ configure_cuda() {
     rm cuda-repo-ubuntu1604-10-1-local-10.1.105-418.39_1.0-1_amd64.deb
 }
 
+configure_pytorch() {
+    prompt_msg "Configuring PyTorch" $force_yes
+    source /home/cc/miniconda3/etc/profile.d/conda.sh
+
+    print_msg "Creating new conda environment"
+    conda create -y -n pytorch python pip
+    conda activate pytorch
+
+    print_msg "Installing PyTorch"
+    conda install -y pytorch torchvision cudatoolkit=10.0 -c pytorch
+
+    print_msg "Verifying PyTorch installation"
+    python -c "import torch; print(torch.cuda.is_available())"
+
+    print_msg "Installing AllenNLP"
+    pip install --upgrade allennlp
+
+    print_msg "Clean up conda environment"
+    conda clean -a -y
+    conda deactivate
+}
+
 sudo apt update
 
 configure_zsh
@@ -176,6 +201,10 @@ configure_conda
 
 if [ "$install_cuda" = true ]; then
     configure_cuda
+fi
+
+if [ "$install_pytorch" = true ]; then
+    configure_pytorch
 fi
 
 # Cleanup
