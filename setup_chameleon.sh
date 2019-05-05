@@ -2,6 +2,7 @@
 
 force_yes=false
 install_cuda=false
+install_conda=false
 install_pytorch=false
 
 while :; do
@@ -11,6 +12,9 @@ while :; do
             ;;
         --cuda|--install-cuda)
             install_cuda=true
+            ;;
+        --conda|--install-conda)
+            install_conda=true
             ;;
         --pytorch|--install-pytorch)
             install_pytorch=true
@@ -124,23 +128,6 @@ configure_tools() {
       && sudo chmod ugo+rx /usr/local/bin/icdiff
 }
 
-configure_conda() {
-    prompt_msg "Configuring conda" $force_yes
-
-    print_msg "Installing Miniconda3"
-    wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
-    safe_delete ~/miniconda3
-    sh ./Miniconda3-latest-Linux-x86_64.sh -b -p ~/miniconda3
-
-    print_msg "Configuring conda channels"
-    source /home/cc/miniconda3/etc/profile.d/conda.sh
-    conda config --set show_channel_urls true && conda config --set channel_priority true && conda config --append channels conda-forge
-    printf "\n# Conda command\nsource /home/cc/miniconda3/etc/profile.d/conda.sh\n" >> ~/.zshrc
-    # source ~/.zshrc
-    # conda clean -a
-    rm Miniconda3-latest-Linux-x86_64.sh
-}
-
 configure_cuda() {
     prompt_msg "Configuring CUDA" $force_yes
 
@@ -167,6 +154,23 @@ configure_cuda() {
 
     print_msg "Removing the Debian installer"
     rm cuda-repo-ubuntu1604-10-1-local-10.1.105-418.39_1.0-1_amd64.deb
+}
+
+configure_conda() {
+    prompt_msg "Configuring conda" $force_yes
+
+    print_msg "Installing Miniconda3"
+    wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
+    safe_delete ~/miniconda3
+    sh ./Miniconda3-latest-Linux-x86_64.sh -b -p ~/miniconda3
+
+    print_msg "Configuring conda channels"
+    source /home/cc/miniconda3/etc/profile.d/conda.sh
+    conda config --set show_channel_urls true && conda config --set channel_priority true && conda config --append channels conda-forge
+    printf "\n# Conda command\nsource /home/cc/miniconda3/etc/profile.d/conda.sh\n" >> ~/.zshrc
+    # source ~/.zshrc
+    # conda clean -a
+    rm Miniconda3-latest-Linux-x86_64.sh
 }
 
 configure_pytorch() {
@@ -197,10 +201,13 @@ configure_zsh
 configure_vim
 configure_tmux
 configure_tools
-configure_conda
 
 if [ "$install_cuda" = true ]; then
     configure_cuda
+fi
+
+if [ "$install_conda" = true ]; then
+    configure_conda
 fi
 
 if [ "$install_pytorch" = true ]; then
