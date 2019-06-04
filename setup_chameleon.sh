@@ -177,7 +177,7 @@ configure_pytorch() {
     python -c "import torch; print(torch.cuda.is_available())"
 
     print_msg "Installing AllenNLP"
-    pip install --upgrade allennlp
+    pip install --upgrade allennlp==0.8.3
 
     print_msg "Clean up conda environment"
     conda clean -a -y
