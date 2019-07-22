@@ -1,13 +1,12 @@
 # chameleon-setup
 Script to quickly setup [Chameleon](https://www.chameleoncloud.org/) computing nodes.
 
-Start a Chameleon instance with the latest official CC-Ubuntu16.04 image.
+Start a Chameleon instance with the latest official CC-Ubuntu18.04 (or CC-Ubuntu18.04-CUDA10 if running on GPU nodes) image.
 
 Then run the script by:
 
 ```
-curl -fSsL https://raw.githubusercontent.com/pxch/chameleon-setup/master/setup_chameleon.sh | \
-    bash -s -- [--cuda] [--conda] [--pytorch]
+curl -fSsL https://raw.githubusercontent.com/pxch/chameleon-setup/master/setup_chameleon.sh | bash -s -- --conda --pytorch
 ```
 By default, the script will do the following:
 
@@ -19,6 +18,6 @@ By default, the script will do the following:
 
 Optional configurations:
 
-* If `--cuda` is specified, CUDA 10.1 will be installed.
 * If `--conda` is specified, Miniconda3 will be installed.
-* If `--pytorch` is specified, a new conda environment named "pytorch" will be created, and the latest version of [PyTorch](https://pytorch.org/) and [AllenNLP](https://allennlp.org/) will be installed in the environment.
+* If `--pytorch` is specified, a new conda environment named "pytorch" will be created, and the latest version of [PyTorch](https://pytorch.org/) and [AllenNLP](https://allennlp.org/) (v0.8.3) will be installed in the environment.
+* If you want to install CUDA manually on the CC-Ubuntu18.04 image, append `--cuda` to install CUDA 10.1.
