@@ -171,7 +171,7 @@ configure_pytorch() {
     conda activate pytorch
 
     print_msg "Installing PyTorch"
-    conda install -y pytorch torchvision cudatoolkit=10.0 -c pytorch
+    conda install -y pytorch=1.1.0 torchvision cudatoolkit=10.0 -c pytorch
 
     print_msg "Verifying PyTorch installation"
     python -c "import torch; print(torch.cuda.is_available())"

@@ -19,5 +19,5 @@ By default, the script will do the following:
 Optional configurations:
 
 * If `--conda` is specified, Miniconda3 will be installed.
-* If `--pytorch` is specified, a new conda environment named "pytorch" will be created, and the latest version of [PyTorch](https://pytorch.org/) and [AllenNLP](https://allennlp.org/) (v0.8.3) will be installed in the environment.
+* If `--pytorch` is specified, a new conda environment named "pytorch" will be created, and [PyTorch](https://pytorch.org/) (v1.1.0) and [AllenNLP](https://allennlp.org/) (v0.8.3) will be installed in the environment.
 * If you want to install CUDA manually on the CC-Ubuntu18.04 image, append `--cuda` to install CUDA 10.1.
