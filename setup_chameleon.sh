@@ -12,8 +12,11 @@ while :; do
         --conda|--install-conda)
             install_conda=true
             ;;
-        --pytorch|--install-pytorch)
-            install_pytorch=true
+        --lambada|--configure-lambada)
+            configure_lambada=true
+            ;;
+        --mrqa|--configure-mrqa)
+            configure_mrqa=true
             ;;
         *)
             break
@@ -162,13 +165,13 @@ configure_conda() {
     rm Miniconda3-latest-Linux-x86_64.sh
 }
 
-configure_pytorch() {
-    print_msg "Configuring PyTorch"
+configure_lambada() {
+    print_msg "Configuring conda environment for lambada experiments"
     source ~/miniconda3/etc/profile.d/conda.sh
 
     print_msg "Creating new conda environment"
-    conda create -y -n pytorch python pip
-    conda activate pytorch
+    conda create -y -n lambada python pip
+    conda activate lambada
 
     print_msg "Installing PyTorch"
     conda install -y pytorch=1.1.0 torchvision cudatoolkit=10.0 -c pytorch
@@ -178,6 +181,28 @@ configure_pytorch() {
 
     print_msg "Installing AllenNLP"
     pip install allennlp==0.8.3
+
+    print_msg "Clean up conda environment"
+    conda clean -a -y
+    conda deactivate
+}
+
+configure_mrqa() {
+    print_msg "Configuring conda environment for mrqa experiments"
+    source ~/miniconda3/etc/profile.d/conda.sh
+
+    print_msg "Creating new conda environment"
+    conda create -y -n mrqa python=3.7 pip
+    conda activate mrqa
+
+    print_msg "Installing PyTorch"
+    conda install -y pytorch==1.2.0 torchvision==0.4.0 cudatoolkit=10.0 -c pytorch
+
+    print_msg "Verifying PyTorch installation"
+    python -c "import torch; print(torch.cuda.is_available())"
+
+    print_msg "Installing AllenNLP"
+    pip install allennlp==0.9.0
 
     print_msg "Clean up conda environment"
     conda clean -a -y
@@ -199,8 +224,12 @@ if [ "$install_conda" = true ]; then
     configure_conda
 fi
 
-if [ "$install_pytorch" = true ]; then
-    configure_pytorch
+if [ "$configure_lambada" = true ]; then
+    configure_lambada
+fi
+
+if [ "$configure_mrqa" = true ]; then
+    configure_mrqa
 fi
 
 # Cleanup

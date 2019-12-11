@@ -6,7 +6,7 @@ Start a Chameleon instance with the latest official CC-Ubuntu18.04 (or CC-Ubuntu
 Then run the script by:
 
 ```
-curl -fSsL https://raw.githubusercontent.com/pxch/chameleon-setup/master/setup_chameleon.sh | bash -s -- --conda --pytorch
+curl -fSsL https://raw.githubusercontent.com/pxch/chameleon-setup/master/setup_chameleon.sh | bash -s -- --conda
 ```
 By default, the script will do the following:
 
@@ -19,5 +19,6 @@ By default, the script will do the following:
 Optional configurations:
 
 * If `--conda` is specified, Miniconda3 will be installed.
-* If `--pytorch` is specified, a new conda environment named "pytorch" will be created, and [PyTorch](https://pytorch.org/) (v1.1.0) and [AllenNLP](https://allennlp.org/) (v0.8.3) will be installed in the environment.
+* If `--lambada` is specified, a new conda environment named "lambada" will be created, and [PyTorch](https://pytorch.org/) (v1.1.0) and [AllenNLP](https://allennlp.org/) (v0.8.3) will be installed in the environment.
+* If `--mrqa` is specified, a new conda environment named "mrqa" will be created, and [PyTorch](https://pytorch.org/) (v1.2.0) and [AllenNLP](https://allennlp.org/) (v0.9.0) will be installed in the environment.
 * If you want to install CUDA manually on the CC-Ubuntu18.04 image, append `--cuda` to install CUDA 10.1.
