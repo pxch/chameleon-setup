@@ -2,7 +2,9 @@
 
 install_cuda=false
 install_conda=false
-install_pytorch=false
+configure_lambada=false
+configure_mrqa=false
+uc_node=false
 
 while :; do
     case $1 in
@@ -17,6 +19,9 @@ while :; do
             ;;
         --mrqa|--configure-mrqa)
             configure_mrqa=true
+            ;;
+        --uc|--uc-node)
+            uc_node=true
             ;;
         *)
             break
@@ -196,13 +201,26 @@ configure_mrqa() {
     conda activate mrqa
 
     print_msg "Installing PyTorch"
-    conda install -y pytorch==1.2.0 torchvision==0.4.0 cudatoolkit=10.0 -c pytorch
+    if [ "$uc_node" = true ]; then
+        conda install -y pytorch==1.3.1 torchvision==0.4.2 cudatoolkit=10.1 -c pytorch
+    else
+        conda install -y pytorch==1.2.0 torchvision==0.4.0 cudatoolkit=10.0 -c pytorch
+    fi
 
     print_msg "Verifying PyTorch installation"
     python -c "import torch; print(torch.cuda.is_available())"
 
     print_msg "Installing AllenNLP"
     pip install allennlp==0.9.0
+
+    cd
+    mkdir -p mrqa/sem_bert && mkdir -p mrqa/datasets && mkdir -p mrqa/exp_outputs
+
+    print_msg "Installing Apex"
+    cd mrqa
+    git clone https://github.com/NVIDIA/apex
+    cd apex
+    pip install -v --no-cache-dir --global-option="--cpp_ext" --global-option="--cuda_ext" ./
 
     print_msg "Clean up conda environment"
     conda clean -a -y
