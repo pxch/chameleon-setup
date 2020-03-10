@@ -1,27 +1,31 @@
 #!/bin/bash
 
-install_cuda=false
-install_conda=false
-configure_lambada=false
-configure_mrqa=false
-uc_node=false
+NC='\033[0m'
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+
+TMUX_VER=3.0a
+ICDIFF_VER=1.9.5
+
+CUDA_VERSION=10.0
+INSTALL_CUDA=false
+LAMBADA=false
+MRQA=false
 
 while :; do
     case $1 in
-        --cuda|--install-cuda)
-            install_cuda=true
+        --cuda)
+            shift
+            CUDA_VERSION=$1
             ;;
-        --conda|--install-conda)
-            install_conda=true
+        --install-cuda)
+            INSTALL_CUDA=true
             ;;
-        --lambada|--configure-lambada)
-            configure_lambada=true
+        --lambada)
+            LAMBADA=true
             ;;
-        --mrqa|--configure-mrqa)
-            configure_mrqa=true
-            ;;
-        --uc|--uc-node)
-            uc_node=true
+        --mrqa)
+            MRQA=true
             ;;
         *)
             break
@@ -29,16 +33,19 @@ while :; do
     shift
 done
 
-TMUX_VER=2.9
-ICDIFF_VER=1.9.4
+# echo $CUDA_VERSION $INSTALL_CUDA $LAMBADA $MRQA
+if [[ ${CUDA_VERSION} != "10.0" && ${CUDA_VERSION} != "10.1" ]]; then
+    printf "${RED}CUDA version can only be 10.0 or 10.1\nExit ...\n"
+    exit 0
+fi
 
 print_msg() {
-    printf "\n#### CHAMELEON #### $1\n"
+    printf "\n${GREEN}$1${NC}\n"
 }
 
 safe_delete() {
     if [ -d $1 ]; then
-        echo "$1 already exists, deleting it ..."
+        print_msg "$1 already exists, deleting it ..."
         sudo rm -rf $1
     fi
 }
@@ -72,12 +79,16 @@ configure_zsh() {
 
 configure_vim() {
     print_msg "Configuring vim"
-
-    print_msg "Installing latest vim from source"
     sudo apt install -y libncurses5-dev
+
+    print_msg "Getting latest vim from source"
     safe_delete ~/vim
     git clone https://github.com/vim/vim.git ~/vim
-    cd ~/vim/src && make && sudo make install
+
+    print_msg "Compiling and installing vim"
+    cd ~/vim/src
+    make >/dev/null || make
+    sudo make install >/dev/null
     cd && rm -rf ~/vim
     printf "\n# Link vi alias to latest version of vim\nalias vi=/usr/local/bin/vim\n" >> ~/.zshrc
     # source ~/.zshrc
@@ -92,12 +103,17 @@ configure_vim() {
 
 configure_tmux() {
     print_msg "Configuring tmux"
-
-    print_msg "Installing latest tmux from source"
     sudo apt install -y libevent-dev
+
+    print_msg "Getting tmux-${TMUX_VER} from source"
+    safe_delete ~/tmux-${TMUX_VER}
     wget https://github.com/tmux/tmux/releases/download/${TMUX_VER}/tmux-${TMUX_VER}.tar.gz
     tar xf tmux-${TMUX_VER}.tar.gz
-    cd tmux-${TMUX_VER} && ./configure && make && sudo make install
+
+    print_msg "Compiling and installing tmux"
+    cd tmux-${TMUX_VER} && ./configure -q
+    make >/dev/null || make
+    sudo make install >/dev/null
     cd && rm -rf tmux-${TMUX_VER} && rm tmux-${TMUX_VER}.tar.gz
     # source ~/.zshrc
 
@@ -137,20 +153,21 @@ configure_cuda() {
     print_msg "Installing kernel headers and development packages"
     sudo apt-get install -y linux-headers-$(uname -r)
 
-    print_msg "Downloading local Debian installer for CUDA 10.1"
-    wget https://developer.nvidia.com/compute/cuda/10.1/Prod/local_installers/cuda-repo-ubuntu1604-10-1-local-10.1.105-418.39_1.0-1_amd64.deb
-    print_msg "Installing CUDA 10.1"
-    sudo dpkg -i cuda-repo-ubuntu1604-10-1-local-10.1.105-418.39_1.0-1_amd64.deb
-    sudo apt-key add /var/cuda-repo-10-1-local-10.1.105-418.39/7fa2af80.pub
+    # TODO: install CUDA based on $cuda_version
+    print_msg "Downloading local Debian installer for CUDA 10.0"
+    wget https://developer.nvidia.com/compute/cuda/10.0/Prod/local_installers/cuda-repo-ubuntu1804-10-0-local-10.0.130-410.48_1.0-1_amd64
+    print_msg "Installing CUDA 10.0"
+    sudo dpkg -i cuda-repo-ubuntu1804-10-0-local-10.0.130-410.48_1.0-1_amd64
+    sudo apt-key add /var/cuda-repo-10-0-local-10.0.130-410.48/7fa2af80.pub
     sudo apt-get update
-    sudo apt-get install -y cuda-10-1
+    sudo apt-get install -y cuda-10-0
     printf "\n# CUDA variables\nexport PATH=/usr/local/cuda/bin\${PATH:+:\${PATH}}\nexport LD_LIBRARY_PATH=/usr/local/cuda/lib64\${LD_LIBRARY_PATH:+:\${LD_LIBRARY_PATH}}\n" >> ~/.zshrc
 
     print_msg "Verifying nvidia-smi"
     /usr/bin/nvidia-smi
 
     print_msg "Removing the Debian installer"
-    rm cuda-repo-ubuntu1604-10-1-local-10.1.105-418.39_1.0-1_amd64.deb
+    rm cuda-repo-ubuntu1804-10-0-local-10.0.130-410.48_1.0-1_amd64
 }
 
 configure_conda() {
@@ -201,7 +218,7 @@ configure_mrqa() {
     conda activate mrqa
 
     print_msg "Installing PyTorch"
-    if [ "$uc_node" = true ]; then
+    if [ "$CUDA_VERSION" = "10.1" ]; then
         conda install -y pytorch==1.3.1 torchvision==0.4.2 cudatoolkit=10.1 -c pytorch
     else
         conda install -y pytorch==1.2.0 torchvision==0.4.0 cudatoolkit=10.0 -c pytorch
@@ -210,20 +227,21 @@ configure_mrqa() {
     print_msg "Verifying PyTorch installation"
     python -c "import torch; print(torch.cuda.is_available())"
 
-    print_msg "Installing AllenNLP"
-    pip install allennlp==0.9.0
+    # print_msg "Installing AllenNLP"
+    # pip install allennlp==0.9.0
 
     cd
     mkdir -p mrqa/sem_bert && mkdir -p mrqa/datasets && mkdir -p mrqa/exp_outputs
 
     print_msg "Installing Apex"
     cd mrqa
+    safe_delete apex
     git clone https://github.com/NVIDIA/apex
     cd apex
-    pip install -v --no-cache-dir --global-option="--cpp_ext" --global-option="--cuda_ext" ./
+    pip install -q --no-cache-dir --global-option="--cpp_ext" --global-option="--cuda_ext" ./
 
     print_msg "Clean up conda environment"
-    conda clean -a -y
+    conda clean -q -a -y
     conda deactivate
 }
 
@@ -234,19 +252,17 @@ configure_vim
 configure_tmux
 configure_tools
 
-if [ "$install_cuda" = true ]; then
+configure_conda
+
+if [ "$INSTALL_CUDA" = true ]; then
     configure_cuda
 fi
 
-if [ "$install_conda" = true ]; then
-    configure_conda
-fi
-
-if [ "$configure_lambada" = true ]; then
+if [ "$LAMBADA" = true ]; then
     configure_lambada
 fi
 
-if [ "$configure_mrqa" = true ]; then
+if [ "$MRQA" = true ]; then
     configure_mrqa
 fi
 
