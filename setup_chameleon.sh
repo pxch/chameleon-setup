@@ -9,6 +9,7 @@ ICDIFF_VER=1.9.5
 
 CUDA_VERSION=10.0
 INSTALL_CUDA=false
+INSTALL_DOCKER=false
 LAMBADA=false
 MRQA=false
 
@@ -20,6 +21,9 @@ while :; do
             ;;
         --install-cuda)
             INSTALL_CUDA=true
+            ;;
+        --install-docker)
+            INSTALL_DOCKER=true
             ;;
         --lambada)
             LAMBADA=true
@@ -170,6 +174,19 @@ configure_cuda() {
     rm cuda-repo-ubuntu1804-10-0-local-10.0.130-410.48_1.0-1_amd64
 }
 
+configure_docker() {
+    sudo apt-get remove -y docker docker-engine docker.io containerd runc
+    sudo apt-get update
+    sudo apt-get install -y apt-transport-https ca-certificates curl gnupg-agent software-properties-common
+    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+    sudo apt-key fingerprint 0EBFCD88
+    sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+    sudo apt-get update
+    sudo apt-get install -y docker-ce docker-ce-cli containerd.io
+    sudo docker run hello-world
+    sudo usermod -aG docker cc
+}
+
 configure_conda() {
     print_msg "Configuring conda"
 
@@ -256,6 +273,10 @@ configure_conda
 
 if [ "$INSTALL_CUDA" = true ]; then
     configure_cuda
+fi
+
+if [ "$INSTALL_DOCKER" = true ]; then
+    configure_docker
 fi
 
 if [ "$LAMBADA" = true ]; then
